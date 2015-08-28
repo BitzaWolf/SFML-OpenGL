@@ -3,21 +3,27 @@
 
 #include "stdafx.h"
 #include <GL/glew.h>
-#include <SFML/OpenGL.hpp>
 #include <SFML/Window.hpp>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace sf;
 
 void setup();
+std::string readInShaderFile(const std::string &fileName);
 GLuint createShader(GLenum eShaderType, const std::string &strShaderFile);
 GLuint createProgram(const std::vector<GLuint> &shaderList);
 void initializeProgram();
 void initializeVertexBuffer();
 
+// SFML parameters
 ContextSettings* settings;
 Window* window;
+
+// OpenGL Objects
 GLuint glProgram, positionBufferObject, vao;
 
 const float vertexPositions[] = {
@@ -26,32 +32,14 @@ const float vertexPositions[] = {
 	-0.75f, -0.75f, 0.0f, 1.0f,
 };
 
-const std::string strVertexShader(
-	"#version 330\n"
-	"layout(location = 0) in vec4 position;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = position;\n"
-	"}\n"
-);
-
-const std::string strFragmentShader(
-	"#version 330\n"
-	"out vec4 outputColor;\n"
-	"void main()\n"
-	"{\n"
-	"	outputColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
-	"}\n"
-);
+const std::string strVertexShader = readInShaderFile("Vertex.glsl");
+const std::string strFragmentShader = readInShaderFile("Frag.glsl");
 
 int main()
 {
 	setup();
-
 	initializeProgram();
 	initializeVertexBuffer();
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
 
 	bool running = true;
 	while (running)
@@ -89,7 +77,7 @@ int main()
 		glUseProgram(0);
 
 		window->display();
-		sleep(milliseconds(8)); // at most, 125 fps
+		sleep(milliseconds(8)); // at most, 125 fps. No need to max out CPU for no reason.
 	}
 
 	delete settings;
@@ -112,6 +100,26 @@ void setup()
 	window->setVerticalSyncEnabled(true);
 
 	glewInit();
+}
+
+std::string readInShaderFile(const std::string &fileName)
+{
+	std::ifstream fileIn(fileName);
+	if (fileIn.is_open())
+	{
+		std::string line;
+		std::stringstream fileBuffer;
+		while (std::getline(fileIn, line))
+		{
+			fileBuffer << line << "\n";
+		}
+		return fileBuffer.str();
+	}
+	else
+	{
+		fprintf(stderr, "Could not find/load shader file: %s", fileName);
+		return "";
+	}
 }
 
 void initializeProgram()
@@ -190,4 +198,7 @@ void initializeVertexBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, positionBufferObject);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 }
