@@ -24,7 +24,9 @@ ContextSettings* settings;
 Window* window;
 
 // OpenGL Objects
-GLuint glProgram, positionBufferObject, vao;
+GLuint glProgram; // The compiled Shader program
+GLuint positionBufferObject; // The ID of the vertex data on GL's memory
+GLuint vao; // The ID of 
 
 const float vertexPositions[] = {
 	0.75f, 0.75f, 0.0f, 1.0f,
@@ -117,7 +119,7 @@ std::string readInShaderFile(const std::string &fileName)
 	}
 	else
 	{
-		fprintf(stderr, "Could not find/load shader file: %s", fileName);
+		std::cout << "Could not find/load shader file: " << fileName << std::endl;
 		return "";
 	}
 }
@@ -157,7 +159,7 @@ GLuint createShader(GLenum shaderType, const std::string &strShaderFile)
 			case GL_FRAGMENT_SHADER: strShaderType = "fragment"; break;
 		}
 
-		fprintf(stderr, "Compile failure in %s shader:\n%s\n", strShaderType, strInfoLog);
+		std::cout << "Compile failure in " << strShaderType << " shader:\n" << strInfoLog << std::endl;
 		delete[] strInfoLog; //deletes every item in the array! Neat.
 	}
 
@@ -184,7 +186,7 @@ GLuint createProgram(const std::vector<GLuint> &shaderList)
 
 		GLchar *strInfoLog = new GLchar[infoLogLength + 1];
 		glGetProgramInfoLog(program, infoLogLength, NULL, strInfoLog);
-		fprintf(stderr, "Linker failure: %s\n", strInfoLog);
+		std::cout << "Linker failure: " << strInfoLog << std::endl;
 		delete[] strInfoLog;
 	}
 
